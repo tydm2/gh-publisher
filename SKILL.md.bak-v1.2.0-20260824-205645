@@ -2,10 +2,9 @@
 name: gh-publisher
 description: Use when the user wants to publish files, a skill, or a project to a GitHub repository — especially when git is unavailable or the repo is empty. Publishes without git via the gh CLI + GitHub REST API (Contents / Git Database), with a built-in scripts/push.ps1 for one-command pushes; tokens never enter chat/logs/files, files are secret-scanned before push, output is masked; adapts to DSH/Codex/Claude Code. Not for full git history or branch merges.
 metadata:
-  version: 1.2.0
+  version: 1.1.0
   languages: [en]
   changelog:
-    - 1.2.0: multilingual publish — configurable local language (zh/en via config.local.json), 10 release languages (en/zh-CN/hi/es/fr/ar/bn/pt/ru/ja), references/i18n.md protocol, push.ps1 -Languages readiness check
     - 1.1.0: gh binary auto-detect (-GhPath) + GH_CONFIG_DIR auto-detect + robust empty-repo detection (git refs) + repo-not-found hint + surfaced API errors + environment self-check section
     - 1.0.0: initial English release for GitHub (the local zh version lives at ~/.dsh/skills/gh-publisher)
 user-invocable: true
@@ -45,12 +44,6 @@ pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/re
 2. **Logged in?** — `gh auth status` must show a logged-in account (token is masked as `github_pat_***…`; never paste a raw token anywhere).
 3. **Config dir?** — usually automatic (`%APPDATA%\GitHub CLI`); if the agent cannot write there, set `GH_CONFIG_DIR` or pass `-GhConfigDir`.
 4. **Test connectivity** — `gh api repos/{owner}/{repo}` or `gh repo list` should return data before the first push.
-
-## Multilingual publish (local language + 10 release languages)
-
-- **Local working copy stays in your language**: the installed skill dir holds `config.local.json` with `{"local_lang": "zh"|"en"}` (default `zh`). Say *"change local default language to English"* to switch — the local SKILL.md is updated to match. Read it before translating any local docs.
-- **Release = 10 GitHub most-used languages**: `README.<lang>.md` for en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja (full list + translation rules + trigger-contract notes in `references/i18n.md`). `SKILL.md` stays English as the universal primary; all language versions share the same `name`.
-- **Readiness check**: pass `-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja` to `push.ps1`; it verifies each `README.<lang>.md` exists before pushing and warns about missing ones.
 
 ## Manual flow (only when the script is unavailable)
 

@@ -16,7 +16,6 @@ param(
   [string]$Branch = 'main',
   [string]$GhConfigDir = '',
   [string]$GhPath = '',
-  [string]$Languages = '',
   [switch]$ForceSecret
 )
 $ErrorActionPreference = 'Stop'
@@ -45,22 +44,6 @@ elseif ($env:GH_CONFIG_DIR) { }  # already set by the caller
 elseif (Test-Path "$env:APPDATA\GitHub CLI") { $env:GH_CONFIG_DIR = "$env:APPDATA\GitHub CLI" }
 
 $srcRoot = (Resolve-Path $Source).Path
-
-# ---------- multilingual readiness check ----------
-if ($Languages) {
-  $missing = @()
-  foreach ($lang in ($Languages -split ',' | ForEach-Object { $_.Trim() } | Where-Object { $_ })) {
-    $fname = if ($lang -eq 'en') { 'README.md' } else { "README.$lang.md" }
-    $f = Join-Path $srcRoot $fname
-    if (-not (Test-Path $f)) { $missing += $lang }
-  }
-  if ($missing.Count -gt 0) {
-    Write-Host ("I18N WARN: {0} language file(s) missing: {1}" -f $missing.Count, ($missing -join ', '))
-    Write-Host "  Translate them first (see references/i18n.md), or drop them from -Languages."
-  } else {
-    Write-Host ("I18N OK: all {0} language files present" -f ($Languages -split ',' | Where-Object { $_ }).Count)
-  }
-}
 
 # ---------- secret scan ----------
 $patterns = @(

@@ -1,30 +1,44 @@
 # gh-publisher
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Português](./README.pt.md) · [Español](./README.es.md) · [日本語](./README.ja.md) · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md) · [한국어](./README.ko.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
-[![100%25 AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
+[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./CHANGELOG.md)
+[![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
-**बिना git के GitHub पर फ़ाइलें प्रकाशित करें — token-कुशल, गोपनीयता-सुरक्षित, multi-agent।**
+**GitHub पर बिना git के फ़ाइलें प्रकाशित करें — टोकन-कुशल, गोपनीयता-सुरक्षित, बहु-एजेंट, बहुभाषी।**
 
-`gh-publisher` एक agent skill है जो `gh` CLI + GitHub REST API (Contents / Git Database) का उपयोग करके किसी स्थानीय निर्देशिका को GitHub repository में प्रकाशित करता है — git की आवश्यकता नहीं। यह एक पुन: प्रयोज्य script के साथ empty-repo initialization और batch commits को संभालता है, ताकि agents पूरे API flow को फिर से बनाने के बजाय एक ही command में push कर सकें।
+`gh-publisher` एक एजेंट स्किल है जो `gh` CLI + GitHub REST API (Contents / Git Database) का उपयोग करके एक स्थानीय निर्देशिका को GitHub रिपॉज़िटरी में प्रकाशित करता है — git की आवश्यकता नहीं। यह एक पुन: प्रयोज्य स्क्रिप्ट के साथ खाली-रिपॉज़िटरी इनिशियलाइज़ेशन और बैच कमिट को संभालता है, जिससे एजेंट पूरे API प्रवाह को दोबारा निकालने के बजाय एक ही कमांड में पुश करते हैं। यह **GitHub की 10 सबसे अधिक उपयोग की जाने वाली भाषाओं** (README अनुवाद) को भी प्रकाशित करता है, जबकि स्थानीय कार्यशील कॉपी आपकी पसंदीदा भाषा में रहती है।
 
 ## यह ख़ास क्यों है
 
-- **🚀 Git-free push** — बिना git वाली मशीनों पर काम करता है; empty repositories को स्वचालित रूप से initialize करता है।
-- **⚡ Token-efficient** — एक `scripts/push.ps1` command scan → init → batch commit → masked output (सिर्फ़ एक `PUSHED N files -> URL` पंक्ति) करता है, दर्जनों हाथ से बनाए गए API calls के बजाय।
-- **🔒 गोपनीयता और account सुरक्षा** — tokens केवल `gh` keyring में रहते हैं (chat/logs/files में कभी नहीं); push से पहले files की secret scan होती है (`github_pat_`, `ghp_`, `sk-`, private keys…); output masked होता है।
-- **🔌 Multi-agent अनुकूलनीय** — `pwsh` script Windows/macOS/Linux पर चलता है; DSH / Codex / Claude Code mappings दस्तावेज़ित हैं; कोई hardcoded platform tool names नहीं।
-- **🧩 Auto empty-repo init** — empty repos का पता लगाता है और batch commit से पहले Contents API के ज़रिए पहली file डाल देता है।
+- **🚀 Git-मुक्त पुश** — बिना git वाली मशीनों पर काम करता है; खाली रिपॉज़िटरीज़ को स्वचालित रूप से इनिशियलाइज़ करता है।
+- **⚡ टोकन-कुशल** — एक `scripts/push.ps1` कमांड स्कैन → इनिट → बैच कमिट → मास्क्ड आउटपुट (सिर्फ़ एक `PUSHED N files -> URL` पंक्ति) करता है, दर्जनों हाथ से बनाए गए API कॉल के बजाय।
+- **🔒 गोपनीयता और खाता सुरक्षा** — टोकन केवल `gh` keyring में रहते हैं (चैट/लॉग/फ़ाइलों में कभी नहीं); पुश से पहले फ़ाइलों की गुप्त-स्कैनिंग होती है (`github_pat_`, `ghp_`, `sk-`, निजी कुंजियाँ…); आउटपुट मास्क किया जाता है।
+- **🔌 बहु-एजेंट अनुकूल** — `pwsh` स्क्रिप्ट Windows/macOS/Linux पर चलती है; DSH / Codex / Claude Code मैपिंग दस्तावेज़ित हैं; कोई हार्डकोडेड प्लेटफ़ॉर्म टूल नाम नहीं।
+- **🧩 स्वचालित खाली-रिपो इनिट** — खाली रिपॉज़िटरीज़ का पता लगाता है और बैच कमिट से पहले Contents API के ज़रिए पहली फ़ाइल सीड करता है।
+- **🌍 बहुभाषी प्रकाशन** — स्थानीय कार्यशील कॉपी आपकी चुनी हुई भाषा में रहती है (डिफ़ॉल्ट चीनी); रिलीज़ में GitHub की 10 सबसे अधिक उपयोग की जाने वाली भाषाओं (en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja) के लिए README अनुवाद शामिल होते हैं। देखें `references/i18n.md`।
 
 ## यह कैसे काम करता है
 
-1. `pwsh scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "…"`
-2. Secret scan → किसी भी key/token pattern पर रुक जाना (जब तक `-ForceSecret` न हो)।
-3. empty repo का पता लगाएं → ज़रूरत हो तो पहली file डालें (Contents API)।
-4. सभी files का batch commit करें (Git Database API: blobs → tree → commit → ref)।
-5. `PUSHED N files -> https://github.com/owner/repo` प्रिंट करें — और कुछ नहीं।
+1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <निर्देशिका> -Repo owner/repo -Message "संदेश" [-GhPath <gh.exe का पथ>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
+2. स्वचालित रूप से `gh` बाइनरी का पता लगाता है (`-GhPath` → PATH → सामान्य इंस्टॉल पथ) और `GH_CONFIG_DIR` को स्वतः पहचानता है — कोई मैन्युअल PATH/config छेड़छाड़ नहीं।
+3. गुप्त-स्कैन → किसी भी key/token पैटर्न पर रद्द करें (जब तक `-ForceSecret` न हो)।
+4. ब्रांच रेफ़ की जाँच करके खाली रिपॉज़िटरी का पता लगाएँ (404 = खाली) → ज़रूरत हो तो पहली फ़ाइल सीड करें (Contents API)।
+5. सभी फ़ाइलों की बैच कमिट करें (Git Database API: blobs → tree → commit → ref)।
+6. `PUSHED N files -> https://github.com/owner/repo` प्रिंट करें — और कुछ नहीं। रिपॉज़िटरी न होने पर → `gh repo create` संकेत प्रिंट करता है।
+7. वैकल्पिक `-Languages` जाँच: पुश करने से पहले प्रत्येक भाषा फ़ाइल के मौजूद होने की पुष्टि करता है (जैसे `README.hi.md`) और यदि कोई गायब हो तो चेतावनी देता है।
+
+## बहुभाषी प्रकाशन (स्थानीय भाषा + 10 रिलीज़ भाषाएँ)
+
+- **स्थानीय कार्यशील कॉपी**: आपकी कॉन्फ़िगर की गई भाषा (zh या en) में रहती है — इंस्टॉल की गई स्किल निर्देशिका में `config.local.json` (डिफ़ॉल्ट `zh`)। स्विच करने के लिए *"स्थानीय डिफ़ॉल्ट भाषा को अंग्रेज़ी में बदलें"* कहें; स्थानीय SKILL.md उसी के अनुसार अपडेट हो जाता है।
+- **रिलीज़**: `SKILL.md` अंग्रेज़ी में रहता है (सार्वभौमिक GitHub प्राथमिक संस्करण), जबकि 10 सबसे अधिक उपयोग की जाने वाली भाषाओं के लिए `README.<lang>.md` प्रकाशित होता है। भाषा सूची, अनुवाद नियम और ट्रिगर-कॉन्ट्रैक्ट नोट्स के लिए देखें `references/i18n.md` (सभी भाषा संस्करणों में एक ही `name` रहता है)।
+
+## पर्यावरण स्व-जाँच (पहली बार पुश करने से पहले एक बार)
+
+- `Get-Command gh` (या स्क्रिप्ट को इंस्टॉल पथ स्वतः पहचानने दें); यदि न हो तो: `winget install GitHub.cli`।
+- `gh auth status` एक लॉग-इन किया हुआ खाता दिखाता है (टोकन `github_pat_***…` के रूप में मास्क होता है)।
+- `gh api repos/{owner}/{repo}` या `gh repo list` डेटा लौटाता है।
 
 ## इंस्टॉल
 
@@ -33,25 +47,26 @@
 .dsh/skills/gh-publisher/      # per project
 ```
 
-इसे *"push this to GitHub"*, *"publish this skill to a repo"* जैसे वाक्यांशों से ट्रिगर करें — या **set-skill** के `/skill` menu item ⑤ से।
+इसे *"इसे GitHub पर पुश करें"*, *"इस स्किल को किसी रिपॉज़िटरी में प्रकाशित करें"* जैसे वाक्यांशों से ट्रिगर करें — या **set-skill** के `/skill` मेनू आइटम ⑤ के ज़रिए।
 
 ## दस्तावेज़
 
-- `references/security.md` — गोपनीयता और account सुरक्षा
-- `references/platform-adapter.md` — DSH / Codex / Claude Code mapping
+- `references/security.md` — गोपनीयता और खाता सुरक्षा
+- `references/platform-adapter.md` — DSH / Codex / Claude Code मैपिंग
+- `references/i18n.md` — बहुभाषी प्रकाशन प्रोटोकॉल (10 भाषाएँ)
 
-## सहयोगी skills
+## सहयोगी स्किल्स
 
-- **[set-skill](https://github.com/tydm2/create-generate-skill)** — इस skill को `/skill` menu item ⑤ के रूप में सूचीबद्ध करता है।
-- **[workflow-builder](https://github.com/tydm2/workflow-builder-skill)** — इसके द्वारा बनाए गए multi-agent workflows को इसी से प्रकाशित करें।
+- **[set-skill](https://github.com/tydm2/create-generate-skill)** — इस स्किल को `/skill` मेनू आइटम ⑤ के रूप में सूचीबद्ध करता है।
+- **[workflow-builder](https://github.com/tydm2/workflow-builder-skill)** — इसके द्वारा बनाए गए बहु-एजेंट वर्कफ़्लो को इसी से प्रकाशित करें।
 
 ## आवश्यकताएँ
 
-- `gh` CLI (`gh auth login` से logged in) + `pwsh` (PowerShell Core, cross-platform)।
+- `gh` CLI (`gh auth login` से लॉग-इन) + `pwsh` (PowerShell Core, क्रॉस-प्लेटफ़ॉर्म)।
 
 ## अस्वीकरण
 
-> **यह skill 100% AI-निर्मित है।** Issues अपरिहार्य हैं — discussion और pull requests का स्वागत है। लेखक वास्तविक उपयोग के आधार पर इस पर लगातार सुधार करते हैं।
+> **यह स्किल 100% AI-निर्मित है।** समस्याएँ अपरिहार्य हैं — चर्चा और पुल रिक्वेस्ट का स्वागत है। लेखक वास्तविक उपयोग के आधार पर इस पर लगातार सुधार करते हैं।
 
 ## लाइसेंस
 

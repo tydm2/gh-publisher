@@ -1,14 +1,14 @@
 # gh-publisher
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Português](./README.pt.md) · [Español](./README.es.md) · [日本語](./README.ja.md) · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md) · [한국어](./README.ko.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./CHANGELOG.md)
-[![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#免责声明)
+[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](./CHANGELOG.md)
+[![100%25 AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#免责声明)
 
-**把文件推送到 GitHub——无需 git，省 token、护隐私、跨平台、多语言。**
+**把文件推送到 GitHub——无需 git，省 token、护隐私、跨平台。**
 
-`gh-publisher` 是一个智能体技能：用 `gh` CLI + GitHub REST API（Contents / Git Database）把本地目录发布到 GitHub 仓库——不需要 git。它用一条可复用脚本自动完成空仓库初始化与批量提交，让智能体一条命令就推完，而不必逐文件重推 API 细节。它还发布 **GitHub 最常用的 10 种语言**（README 翻译版），而本地工作副本始终保留你选定的语言。
+`gh-publisher` 是一个智能体技能：用 `gh` CLI + GitHub REST API（Contents / Git Database）把本地目录发布到 GitHub 仓库——不需要 git。它用一条可复用脚本自动完成空仓库初始化与批量提交，让智能体一条命令就推完，而不必逐文件重推 API 细节。
 
 ## 亮点
 
@@ -17,22 +17,15 @@
 - **🔒 隐私与账号安全**——token 只存在 `gh` keyring（绝不进对话/日志/文件）；推送前对文件做密文扫描（`github_pat_`、`ghp_`、`sk-`、私钥…）；输出脱敏。
 - **🔌 多智能体适配**——`pwsh` 脚本跨 Win/macOS/Linux；给出 DSH / Codex / Claude Code 映射；不写死平台工具名。
 - **🧩 自动空仓库初始化**——检测到空仓库先经 Contents API 播种首个文件，再批量提交。
-- **🌍 多语言发布**——本地工作副本保留你选定的语言（默认中文）；发布版附带 GitHub 最常用 10 种语言的 README 翻译（en、zh-CN、hi、es、fr、ar、bn、pt、ru、ja）。见 `references/i18n.md`。
 
 ## 工作原理
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <目录> -Repo owner/repo -Message "…" [-GhPath <gh.exe 路径>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
+1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <目录> -Repo owner/repo -Message "…" [-GhPath <gh.exe 路径>]`
 2. 自动定位 `gh` 二进制（`-GhPath` → PATH → 常见安装路径）并自动探测 `GH_CONFIG_DIR`——无需手动改 PATH/配置。
 3. 密文扫描 → 命中密钥/token 模式即中止（除非加 `-ForceSecret`）。
 4. 按分支 ref 检测空仓库（404=空）→ 必要时播种首个文件（Contents API）。
 5. 批量提交全部文件（Git Database API：blobs → tree → commit → ref）。
 6. 打印 `PUSHED N files -> https://github.com/owner/repo`——仅此一行；仓库不存在时打印 `gh repo create` 提示。
-7. 可选 `-Languages` 检查：推送前校验每种语言文件存在（如 `README.hi.md`），缺失即告警。
-
-## 多语言发布（本地语言 + 10 种发布语言）
-
-- **本地工作副本**：保留你配置的语言（zh 或 en）——配置存于已安装技能目录的 `config.local.json`（默认 `zh`）。说「更改本地保留默认语言为英文」即可切换，本地 SKILL.md 会同步更新。
-- **发布版**：`SKILL.md` 保持英文（GitHub 通用主版本），`README.<lang>.md` 发布 10 种最常用语言。语言清单、翻译规范与触发契约注意事项见 `references/i18n.md`（所有语言版本 `name` 保持一致）。
 
 ## 环境自检（首次推送前跑一遍）
 
@@ -53,7 +46,6 @@
 
 - `references/security.md` —— 隐私与账号安全
 - `references/platform-adapter.md` —— DSH / Codex / Claude Code 映射
-- `references/i18n.md` —— 多语言发布协议（10 种语言）
 
 ## 配套技能
 

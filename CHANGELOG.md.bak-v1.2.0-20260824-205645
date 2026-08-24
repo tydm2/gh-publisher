@@ -2,14 +2,6 @@
 
 All notable changes to `gh-publisher` are documented here. The skill follows [Semantic Versioning](https://semver.org/).
 
-## [1.2.0] — 2026-08-24 — multilingual publish
-
-- **Local language preference**: the installed working copy keeps a configurable language (zh/en, default `zh`) persisted in `config.local.json`; say *"change local default language to English"* to switch, and the local SKILL.md follows.
-- **10 release languages**: README translations now cover GitHub's 10 most-used natural languages — en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja (ar + bn added; de/ko kept as v1.0.0 snapshots).
-- **`references/i18n.md`** (en/zh): multilingual publish protocol — language list, translation rules, file layout, trigger-contract notes (all language versions share the same `name`).
-- **`push.ps1 -Languages`** check: verifies each language file exists (e.g. `README.hi.md`) before pushing and warns if any are missing.
-- README (en/zh-CN) updated with the 10-language switcher bar and a "Multilingual publish" section.
-
 ## [1.1.0] — 2026-08-24 — usage-driven iteration
 
 Iterated from real-world usage (pushing office-studio + office-imagegen-skill revealed six friction points):
