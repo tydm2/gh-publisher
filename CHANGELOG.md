@@ -2,6 +2,15 @@
 
 All notable changes to `gh-publisher` are documented here. The skill follows [Semantic Versioning](https://semver.org/).
 
+## [1.3.0] — 2026-08-24 — multilingual is now a DEFAULT push step
+
+Driven by a real gap: pushing a skill repo without the 10-language step (create-generate-skill v4.8.0 shipped single-language).
+
+- **Multilingual promoted from "optional readiness check" to a default push step** for skill/doc projects: generate the 10-language READMEs (parallel agents) → `-Languages` check → push; skipped only on explicit user opt-out.
+- **`references/i18n.md`**: new section 0 "Auto-trigger & execution flow" (trigger, opt-out wording, 4-step execution, scope: READMEs translated, SKILL.md single primary, references/scripts not translated).
+- **`push.ps1 -RequireI18n`**: hard enforcement — missing language files now FAIL the push (exit 1) instead of only warning.
+- SKILL.md (en/zh) reworded: "Multilingual publish" → default step with execution flow.
+
 ## [1.2.0] — 2026-08-24 — multilingual publish
 
 - **Local language preference**: the installed working copy keeps a configurable language (zh/en, default `zh`) persisted in `config.local.json`; say *"change local default language to English"* to switch, and the local SKILL.md follows.

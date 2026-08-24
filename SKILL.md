@@ -2,9 +2,10 @@
 name: gh-publisher
 description: Use when the user wants to publish files, a skill, or a project to a GitHub repository — especially when git is unavailable or the repo is empty. Publishes without git via the gh CLI + GitHub REST API (Contents / Git Database), with a built-in scripts/push.ps1 for one-command pushes; tokens never enter chat/logs/files, files are secret-scanned before push, output is masked; adapts to DSH/Codex/Claude Code. Not for full git history or branch merges.
 metadata:
-  version: 1.2.0
+  version: 1.3.0
   languages: [en]
   changelog:
+    - 1.3.0: multilingual is now a DEFAULT push step — before pushing a skill/doc project, generate the 10-language READMEs (parallel agents), run -Languages/-RequireI18n checks, then push; skip only on explicit user opt-out. i18n.md gained an auto-trigger & execution-flow section; push.ps1 gained -RequireI18n (missing language files fail the push)
     - 1.2.0: multilingual publish — configurable local language (zh/en via config.local.json), 10 release languages (en/zh-CN/hi/es/fr/ar/bn/pt/ru/ja), references/i18n.md protocol, push.ps1 -Languages readiness check
     - 1.1.0: gh binary auto-detect (-GhPath) + GH_CONFIG_DIR auto-detect + robust empty-repo detection (git refs) + repo-not-found hint + surfaced API errors + environment self-check section
     - 1.0.0: initial English release for GitHub (the local zh version lives at ~/.dsh/skills/gh-publisher)
@@ -46,11 +47,18 @@ pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/re
 3. **Config dir?** — usually automatic (`%APPDATA%\GitHub CLI`); if the agent cannot write there, set `GH_CONFIG_DIR` or pass `-GhConfigDir`.
 4. **Test connectivity** — `gh api repos/{owner}/{repo}` or `gh repo list` should return data before the first push.
 
-## Multilingual publish (local language + 10 release languages)
+## Multilingual publish (DEFAULT push step for skill/doc projects)
+
+**Before pushing a skill or documentation project to GitHub, the 10-language step runs by default** — skip only when the user explicitly says so (e.g. *"single-language push, no translations"*).
 
 - **Local working copy stays in your language**: the installed skill dir holds `config.local.json` with `{"local_lang": "zh"|"en"}` (default `zh`). Say *"change local default language to English"* to switch — the local SKILL.md is updated to match. Read it before translating any local docs.
-- **Release = 10 GitHub most-used languages**: `README.<lang>.md` for en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja (full list + translation rules + trigger-contract notes in `references/i18n.md`). `SKILL.md` stays English as the universal primary; all language versions share the same `name`.
-- **Readiness check**: pass `-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja` to `push.ps1`; it verifies each `README.<lang>.md` exists before pushing and warns about missing ones.
+- **Release = 10 GitHub most-used languages**: `README.<lang>.md` for en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja (full list + translation rules + trigger-contract notes in `references/i18n.md`). `SKILL.md` stays in one primary language (English for gh-publisher; the project's own convention otherwise); all language versions share the same `name`.
+- **Default execution flow (mandatory unless opted out)**:
+  1. Check whether the source already has the 10 `README.<lang>.md` files; for each missing one, generate the translation (parallel subagents; source = the primary README).
+  2. Run the readiness check: `push.ps1 -Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja` — missing files are WARN.
+  3. For hard enforcement, add `-RequireI18n`: missing language files then **FAIL the push** (exit 1) instead of warning.
+  4. Push.
+- **See `references/i18n.md`** for the auto-trigger protocol, language list, translation rules, and opt-out wording.
 
 ## Manual flow (only when the script is unavailable)
 

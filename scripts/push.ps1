@@ -17,7 +17,8 @@ param(
   [string]$GhConfigDir = '',
   [string]$GhPath = '',
   [string]$Languages = '',
-  [switch]$ForceSecret
+  [switch]$ForceSecret,
+  [switch]$RequireI18n
 )
 $ErrorActionPreference = 'Stop'
 
@@ -55,6 +56,11 @@ if ($Languages) {
     if (-not (Test-Path $f)) { $missing += $lang }
   }
   if ($missing.Count -gt 0) {
+    if ($RequireI18n) {
+      Write-Host ("I18N FAIL: {0} language file(s) missing: {1}" -f $missing.Count, ($missing -join ', '))
+      Write-Host "  Translate them first (see references/i18n.md), or drop -RequireI18n / -Languages."
+      exit 1
+    }
     Write-Host ("I18N WARN: {0} language file(s) missing: {1}" -f $missing.Count, ($missing -join ', '))
     Write-Host "  Translate them first (see references/i18n.md), or drop them from -Languages."
   } else {
