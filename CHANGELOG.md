@@ -1,6 +1,22 @@
-# Changelog
+﻿# Changelog
 
 All notable changes to `gh-publisher` are documented here. The skill follows [Semantic Versioning](https://semver.org/).
+
+## [1.4.0] — 2026-08-24 — machine-local profile & personal-data guard
+
+Machine-local optimization, driven by real friction on this machine (gh not on PATH, GitHub domains hijacked in the hosts file by Steam++, token in the keyring — the account/gh/repo info was scattered and hard to find):
+
+- **Machine-local profile (`local-profile.json`)**: consolidates owner, gh portable entry (proxy-mode shim that bypasses the hosts hijack), `GH_CONFIG_DIR`, and the known repo mapping; flagged `never_publish` — it lives only on the machine and is never pushed to GitHub.
+- **`scripts/push.ps1`**: new `-Profile` parameter auto-resolves the gh entry, config dir, repo (matched by source dir) and languages (auto-detected from `README.<lang>.md`); `-Repo` is now optional when the profile resolves it.
+- **PERSONAL DATA GUARD**: any `local-profile.json` / `config.local.json` inside the source aborts the push; the check runs before gh lookup so it fires even when gh is missing.
+- **Hard rules upgraded to four**: "personal data never leaves the machine" — actions touching the local profile / personal data require an explicitly emphasized confirmation; ordinary pushes need only a one-line confirmation.
+- Verified: contract freeze (name / user-invocable unchanged), `-Profile` end-to-end (profile → language auto-detect → proxy shim → GitHub), and the personal-data guard (aborts with no gh installed).
+## [1.3.1] — 2026-08-24 — push.ps1 empty-repo 409 fix
+
+Discovered while pushing code-forge-skill: on a brand-new empty repo, probing `git/refs/heads/main` returns HTTP 409 "Git Repository is empty"; gh writes it to stderr, and under PS 7.2+ the script-wide `$ErrorActionPreference='Stop'` turns native stderr into a terminating error — killing the script before the empty-repo init could run.
+
+- **`scripts/push.ps1`**: `Invoke-GhApi` now guards the native `gh` call with a temporary EAP downgrade (`Continue`, restored in a `finally` block); success/failure is decided by `$LASTEXITCODE`, not by stderr.
+- Verified end-to-end on a fresh empty repo: auto-seed via Contents API → Git Database batch commit → exit 0.
 
 ## [1.3.0] — 2026-08-24 — multilingual is now a DEFAULT push step
 

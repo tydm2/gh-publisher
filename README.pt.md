@@ -3,40 +3,47 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
-**Publique arquivos no GitHub sem git — eficiente em tokens, seguro para privacidade, multiagente e multilíngue.**
+**Publique arquivos no GitHub sem git — eficiente em tokens, seguro para a privacidade, multiagente, multilíngue.**
 
-`gh-publisher` é uma skill de agente que publica um diretório local em um repositório do GitHub usando a CLI `gh` + GitHub REST API (Contents / Git Database) — sem precisar de git. Ela cuida da inicialização de repositórios vazios e de commits em lote com um único script reutilizável, para que os agentes publiquem em um único comando em vez de reconstruir todo o fluxo da API. Ela também publica **10 dos idiomas mais usados do GitHub** (traduções do README), enquanto a cópia de trabalho local permanece no seu idioma preferido.
+`gh-publisher` é uma skill de agente que publica um diretório local em um repositório do GitHub usando a CLI `gh` + a API REST do GitHub (Contents / Git Database) — sem necessidade de git. Ela lida com a inicialização de repositórios vazios e commits em lote com um único script reutilizável, de modo que os agentes fazem push em um único comando em vez de redescobrir todo o fluxo da API. Ela também publica **10 dos idiomas mais usados do GitHub** (traduções do README) enquanto a cópia de trabalho local permanece no seu idioma preferido.
 
-## Por que ele se destaca
+## Por que ela se destaca
 
 - **🚀 Push sem git** — funciona em máquinas sem git; inicializa repositórios vazios automaticamente.
-- **⚡ Eficiente em tokens** — um único comando `scripts/push.ps1` faz varredura → init → commit em lote → saída mascarada (uma única linha `PUSHED N files -> URL`), em vez de dezenas de chamadas de API feitas à mão.
-- **🔒 Privacidade e segurança da conta** — os tokens ficam somente no keyring do `gh` (nunca em chat/logs/arquivos); os arquivos passam por varredura de segredos antes do push (`github_pat_`, `ghp_`, `sk-`, chaves privadas…); a saída é mascarada.
-- **🔌 Adaptável a múltiplos agentes** — o script `pwsh` roda em Windows/macOS/Linux; os mapeamentos de DSH / Codex / Claude Code estão documentados; sem nomes de ferramentas de plataforma fixos no código.
-- **🧩 Init automático de repositório vazio** — detecta repositórios vazios e insere o primeiro arquivo via Contents API antes do commit em lote.
-- **🌍 Publicação multilíngue** — a cópia de trabalho local permanece no idioma escolhido (padrão: chinês); os lançamentos incluem traduções do README para os 10 idiomas mais usados do GitHub (en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja). Veja `references/i18n.md`.
+- **⚡ Eficiente em tokens** — um único comando `scripts/push.ps1` faz guarda → verificação → inicialização → commit em lote → saída mascarada (uma única linha `PUSHED N files -> URL`), em vez de dezenas de chamadas de API feitas manualmente.
+- **🔒 Privacidade e segurança da conta** — os tokens vivem apenas no chaveiro do `gh` (nunca no chat/logs/arquivos); os arquivos passam por verificação de segredos antes do push (`github_pat_`, `ghp_`, `sk-`, chaves privadas…); a saída é mascarada.
+- **🛡️ Proteção de dados pessoais** — o perfil local da máquina (`local-profile.json` / `config.local.json`) **nunca** pode ser publicado: o push é abortado no momento em que um arquivo desse tipo aparece na origem, antes que qualquer outra coisa seja executada.
+- **🗂️ Perfil local da máquina** — em uma máquina com rede complicada (ex.: sequestro via hosts), um único `local-profile.json` consolida a conta, a entrada do gh (um shim de modo proxy) e o mapeamento de repositórios conhecidos, de modo que os pushes precisam apenas de `-Profile` — chega de procurar conta / gh / repositório.
+- **🔌 Adaptável a múltiplos agentes** — o script `pwsh` roda em Windows/macOS/Linux; mapeamentos DSH / Codex / Claude Code documentados; sem nomes de ferramentas de plataforma embutidos no código.
+- **🧩 Inicialização automática de repositório vazio** — detecta repositórios vazios e semeia o primeiro arquivo via API de Contents antes do commit em lote.
+- **🌍 Publicação multilíngue** — a cópia de trabalho local permanece no idioma escolhido (padrão: chinês); os lançamentos incluem traduções do README para os 10 idiomas mais usados do GitHub (en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja). Consulte `references/i18n.md`.
 
 ## Como funciona
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
-2. Localiza automaticamente o binário do `gh` (`-GhPath` → PATH → caminhos de instalação comuns) e detecta automaticamente `GH_CONFIG_DIR` — sem ajustes manuais de PATH/config.
-3. Varredura de segredos → aborta em qualquer padrão de chave/token (a menos que `-ForceSecret`).
-4. Detecta repositório vazio verificando a ref do branch (404 = vazio) → insere o primeiro arquivo (Contents API) se necessário.
-5. Commit em lote de todos os arquivos (Git Database API: blobs → tree → commit → ref).
-6. Imprime `PUSHED N files -> https://github.com/owner/repo` — nada além disso. Repositório ausente → imprime uma dica de `gh repo create`.
-7. Verificação opcional de `-Languages`: verifica se cada arquivo de idioma existe (ex.: `README.hi.md`) antes do push e avisa se algum estiver ausente.
+1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Profile <local-profile.json>] [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
+2. Localiza automaticamente o binário do `gh` (`-GhPath` → PATH → caminhos de instalação comuns) e detecta automaticamente o `GH_CONFIG_DIR` — sem mexer manualmente em PATH/config. Com `-Profile`, a entrada do gh, o diretório de configuração, o repositório (correspondido pelo diretório de origem) e os idiomas (detectados automaticamente a partir de `README.<lang>.md`) são resolvidos automaticamente.
+3. **Proteção de dados pessoais** — `local-profile.json` / `config.local.json` na origem → abortar (eles nunca devem ser publicados).
+4. Verificação de segredos → abortar em qualquer padrão de chave/token (a menos que `-ForceSecret`).
+5. Detecta repositório vazio verificando a referência do branch (404 = vazio) → semeia o primeiro arquivo (API de Contents) se necessário.
+6. Commit em lote de todos os arquivos (API Git Database: blobs → tree → commit → ref).
+7. Imprime `PUSHED N files -> https://github.com/owner/repo` — nada mais. Repositório ausente → imprime uma dica de `gh repo create`.
+8. Verificação opcional de `-Languages`: verifica se cada arquivo de idioma existe (ex.: `README.hi.md`) antes do push e avisa se algum estiver ausente.
 
 ## Publicação multilíngue (idioma local + 10 idiomas de lançamento)
 
-- **Cópia de trabalho local**: permanece no idioma configurado (zh ou en) — `config.local.json` no diretório da skill instalada (padrão `zh`). Diga *"change local default language to English"* para alternar; o SKILL.md local é atualizado para corresponder.
-- **Lançamento**: o `SKILL.md` permanece em inglês (o idioma primário universal do GitHub), enquanto `README.<lang>.md` é publicado para os 10 idiomas mais usados. Veja `references/i18n.md` para a lista de idiomas, regras de tradução e notas de trigger-contract (todas as versões de idioma mantêm o mesmo `name`).
+- **Cópia de trabalho local**: permanece no idioma configurado (zh ou en) — `config.local.json` no diretório da skill instalada (padrão `zh`). Diga *"altere o idioma local padrão para inglês"* para alternar; o SKILL.md local é atualizado para corresponder.
+- **Lançamento**: o `SKILL.md` permanece em inglês (o idioma universal primário do GitHub), enquanto `README.<lang>.md` é publicado para os 10 idiomas mais usados. Consulte `references/i18n.md` para a lista de idiomas, as regras de tradução e as notas sobre o contrato de gatilho (todas as versões de idioma mantêm o mesmo `name`).
+
+## Perfil local da máquina (local-profile)
+
+Em máquinas com rede não padronizada (ex.: um arquivo hosts sequestrando domínios do GitHub para 127.0.0.1, além de um `gh` portátil que precisa rodar por meio de um shim de proxy local), `E:\ds harness\gh\local-profile.json` consolida o proprietário, a entrada do gh, o diretório de configuração e o mapeamento de repositórios conhecidos. O arquivo é marcado com `"never_publish": true` — ele existe apenas na máquina e nunca é enviado. Qualquer ação que o leia/modifique recebe antes uma confirmação explicitamente enfatizada.
 
 ## Autoverificação do ambiente (uma vez antes do primeiro push)
 
-- `Get-Command gh` (ou deixe o script detectar automaticamente os caminhos de instalação); se estiver ausente: `winget install GitHub.cli`.
+- `Get-Command gh` (ou deixe o script detectar automaticamente os caminhos de instalação); se ausente: `winget install GitHub.cli`.
 - `gh auth status` mostra uma conta conectada (token mascarado como `github_pat_***…`).
 - `gh api repos/{owner}/{repo}` ou `gh repo list` retorna dados.
 
@@ -44,10 +51,10 @@
 
 ```
 ~/.dsh/skills/gh-publisher/    # global
-.dsh/skills/gh-publisher/      # per project
+.dsh/skills/gh-publisher/      # por projeto
 ```
 
-Acione com frases como *"push this to GitHub"*, *"publish this skill to a repo"* — ou pelo item de menu ⑤ `/skill` do **set-skill**.
+Acione-a com frases como *"publique isto no GitHub"*, *"publique esta skill em um repositório"* — ou pelo item ⑤ do menu `/skill` do **set-skill**.
 
 ## Documentação
 
@@ -57,16 +64,16 @@ Acione com frases como *"push this to GitHub"*, *"publish this skill to a repo"*
 
 ## Skills complementares
 
-- **[set-skill](https://github.com/tydm2/create-generate-skill)** — lista esta skill como item de menu ⑤ `/skill`.
-- **[workflow-builder](https://github.com/tydm2/workflow-builder-skill)** — publique com esta skill os workflows multiagente que ele gera.
+- **[set-skill](https://github.com/tydm2/create-generate-skill)** — lista esta skill como item ⑤ do menu `/skill`.
+- **[workflow-builder](https://github.com/tydm2/workflow-builder-skill)** — publique com esta os fluxos de trabalho multiagente que ela gera.
 
 ## Requisitos
 
 - CLI `gh` (conectada via `gh auth login`) + `pwsh` (PowerShell Core, multiplataforma).
 
-## Aviso legal
+## Disclaimer
 
-> **Esta skill é 100% criada por IA.** Problemas são inevitáveis — discussões e pull requests são bem-vindos. O autor itera ativamente sobre ela com base no uso real.
+> **Esta skill é 100% criada por IA.** Problemas são inevitáveis — discussões e pull requests são bem-vindos. O autor a itera ativamente com base no uso no mundo real.
 
 ## Licença
 

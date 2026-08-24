@@ -1,8 +1,14 @@
 # push.ps1 - git-free publish to GitHub via gh CLI + REST API
 # Usage:
-#   pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Branch main] [-GhConfigDir <path>] [-GhPath <path-to-gh.exe>] [-ForceSecret]
-# Exit codes: 0 = ok, 1 = args/secret/network/gh-missing error
-# Security: never prints tokens; secret-scans files before pushing; output is masked/minimal.
+#   pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Branch main] [-GhConfigDir <path>] [-GhPath <path-to-gh.exe>] [-Profile <local-profile.json>] [-ForceSecret]
+#   with -Profile: gh entry / GH_CONFIG_DIR / repo (by source match) / languages (auto-detected) are resolved from the machine-local profile
+# Exit codes: 0 = ok, 1 = args/secret/personal/network/gh-missing error
+# Security: never prints tokens; secret-scans files before pushing; refuses to publish personal files (local-profile.json / config.local.json); output is masked/minimal.
+# v1.4.0 changes:
+#   - -Profile <local-profile.json>: machine-private profile auto-fills gh entry, GH_CONFIG_DIR and repo (matched by source dir); -Languages auto-detected from README.<lang>.md when omitted
+#   - PERSONAL DATA GUARD: any local-profile.json / config.local.json inside the source aborts the push (they must never be published); runs BEFORE gh lookup so it fires even when gh is missing
+#   - -Repo is now optional when -Profile resolves it (still required otherwise)
+# v1.3.1: fix PS 7.2+ $ErrorActionPreference='Stop' making gh's expected stderr (e.g. HTTP 409 on empty repos) a terminating error; Invoke-GhApi lowers EAP to Continue, success judged by $LASTEXITCODE
 # v1.1.0 changes:
 #   - auto-detect gh binary: -GhPath > PATH > common install paths; clear hint when missing
 #   - auto-detect GH_CONFIG_DIR: -GhConfigDir > env > %APPDATA%\GitHub CLI
@@ -11,16 +17,51 @@
 #   - API failures now surface gh's stderr tail for diagnosis
 param(
   [Parameter(Mandatory = $true)][string]$Source,
-  [Parameter(Mandatory = $true)][string]$Repo,
+  [string]$Repo = '',
   [Parameter(Mandatory = $true)][string]$Message,
   [string]$Branch = 'main',
   [string]$GhConfigDir = '',
   [string]$GhPath = '',
   [string]$Languages = '',
+  [string]$Profile = '',
   [switch]$ForceSecret,
   [switch]$RequireI18n
 )
 $ErrorActionPreference = 'Stop'
+
+# ---------- local profile (machine-private; must never be published) ----------
+if ($Profile) {
+  if (-not (Test-Path -LiteralPath $Profile)) { throw "profile not found: $Profile" }
+  $prof = Get-Content -LiteralPath $Profile -Raw | ConvertFrom-Json
+  if (-not $GhPath -and $prof.gh_entry) { $GhPath = $prof.gh_entry }
+  if (-not $GhConfigDir -and $prof.gh_config_dir) { $GhConfigDir = $prof.gh_config_dir }
+  if (-not $Repo -and $prof.repos) {
+    $srcResolved = (Resolve-Path -LiteralPath $Source).Path
+    foreach ($r in $prof.repos.PSObject.Properties) {
+      $src = $r.Value.source
+      if ($src -and (Test-Path -LiteralPath $src) -and ((Resolve-Path -LiteralPath $src).Path -eq $srcResolved)) { $Repo = $r.Value.repo; break }
+    }
+    if (-not $Repo -and $prof.owner) { Write-Host "PROFILE: no repo mapping matched this source (owner $($prof.owner)); pass -Repo owner/repo explicitly." }
+  }
+  Write-Host "PROFILE: loaded $Profile (owner: $($prof.owner))"
+}
+if (-not $Repo) { throw "repo not specified: pass -Repo owner/repo, or provide a -Profile whose repos map this source" }
+
+$srcRoot = (Resolve-Path $Source).Path
+
+# ---------- personal-data guard: never publish machine-private files (runs before gh lookup) ----------
+$personalHits = @()
+Get-ChildItem -LiteralPath $Source -Recurse -File | ForEach-Object {
+  if ($_.Name -match '^(local-profile|config\.local)\.json$') {
+    $personalHits += $_.FullName.Substring($srcRoot.Length + 1).Replace('\', '/')
+  }
+}
+if ($personalHits.Count -gt 0) {
+  Write-Host "PERSONAL DATA GUARD - refusing to publish. Found machine-private file(s):"
+  $personalHits | ForEach-Object { Write-Host "  $_" }
+  Write-Host "local-profile.json / config.local.json contain machine/user-private info and must never be pushed to GitHub."
+  exit 1
+}
 
 # ---------- locate gh binary ----------
 function Find-Gh {
@@ -45,7 +86,14 @@ if ($GhConfigDir) { $env:GH_CONFIG_DIR = $GhConfigDir }
 elseif ($env:GH_CONFIG_DIR) { }  # already set by the caller
 elseif (Test-Path "$env:APPDATA\GitHub CLI") { $env:GH_CONFIG_DIR = "$env:APPDATA\GitHub CLI" }
 
-$srcRoot = (Resolve-Path $Source).Path
+# ---------- auto-detect languages from README.<lang>.md when -Languages omitted ----------
+if (-not $Languages) {
+  $detected = @()
+  if (Test-Path (Join-Path $srcRoot 'README.md')) { $detected += 'en' }
+  $detected += @(Get-ChildItem -LiteralPath $srcRoot -Filter 'README.*.md' -File -ErrorAction SilentlyContinue | Where-Object { $_.Name -notmatch '\.bak' } | ForEach-Object { $_.Name -replace '^README\.(.*)\.md$', '$1' })
+  $detected = $detected | Select-Object -Unique
+  if ($detected.Count -gt 0) { $Languages = ($detected -join ','); Write-Host "LANGUAGES: auto-detected from source: $Languages" }
+}
 
 # ---------- multilingual readiness check ----------
 if ($Languages) {
@@ -106,10 +154,17 @@ New-Item -ItemType Directory -Force -Path $tmp | Out-Null
 
 function Invoke-GhApi {
   # runs gh api, returns ($ok, $textOrError); never leaks token
+  # NOTE: under $ErrorActionPreference='Stop' (PS 7.2+), stderr from a native
+  # command becomes a terminating error. gh writes expected failures (e.g. the
+  # "Git Repository is empty" HTTP 409 on a fresh repo) to stderr, which used to
+  # kill the script before the empty-repo init could run. Guard the call so the
+  # exit code decides, not stderr.
   param([string]$Method, [string]$Endpoint, [string]$BodyFile = '')
   $args = @('api', '--method', $Method, $Endpoint)
   if ($BodyFile) { $args += @('--input', $BodyFile) }
-  $out = (& $gh @args 2>&1 | Out-String)
+  $prevEap = $ErrorActionPreference
+  $ErrorActionPreference = 'Continue'
+  try { $out = (& $gh @args 2>&1 | Out-String) } finally { $ErrorActionPreference = $prevEap }
   if ($LASTEXITCODE -ne 0) { return @($false, $out.Trim()) }
   return @($true, $out.Trim())
 }
