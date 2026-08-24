@@ -39,6 +39,21 @@
 - **Release**: `SKILL.md` stays in English (the universal GitHub primary), while `README.<lang>.md` is published for the 10 most-used languages. See `references/i18n.md` for the language list, translation rules, and trigger-contract notes (all language versions keep the same `name`).
 - **Token-efficient fixed scheme**: languages with an existing translation update via incremental-edit translation (edit only the changed paragraphs — no full re-translation); first-time languages get one full translation that establishes the terminology baseline. See `references/i18n.md` §1.5.
 
+## Measured results: v1.4.0 → v1.5.0 (incremental-edit translation)
+
+The 11-language README update for this release was the first run of the incremental-edit scheme. We measured it against the previous full re-translation, using the actual v1.4.0 files (fetched from the repo at commit `40dcf1f`) vs. the shipped v1.5.0 files (line-level diff):
+
+| Metric | Full re-translation (v1.4 era) | Incremental-edit (v1.5) | Saved |
+|---|---|---|---|
+| Output content, 11 languages | 68,292 chars | 7,717 chars | **88.7%** |
+| Approx. output tokens (~3 chars/token) | ~22,800 | ~2,600 | **~88.7%** |
+| Terminology / style | may drift per release | old translations byte-identical except changed paragraphs | stable |
+| Effort per language | regenerate the whole file | ~4 targeted edits | faster |
+
+Per-language changed ratio (changed chars / old full file): zh-CN 9.1% · hi 10.8% · es 11.9% · fr 12.5% · ar 12.2% · bn 11.3% · pt 11.6% · ru 12.0% · ja 8.9% · de 12.3% · ko 9.4% — **only ~9-12% of each file actually changed**, so full re-translation spent ~8-11× more output than needed.
+
+*Method: v1.4.0 files fetched from the repo at commit `40dcf1f`; per-language line-level diff (added/modified lines) vs. the shipped v1.5.0 files; tokens approximated at ~3 chars/token for mixed-language READMEs. Input-side costs differ too (incremental-edit reads the old translation), but output is the dominant, most expensive part of LLM translation.*
+
 ## Machine-local profile (local-profile)
 
 On machines with non-standard networking (e.g. a hosts file hijacking GitHub domains to 127.0.0.1, plus a portable `gh` that must run through a local proxy shim), `E:\ds harness\gh\local-profile.json` consolidates the owner, the gh entry, the config dir, and the known repo mapping. The file is flagged `"never_publish": true` — it only lives on the machine and is never pushed. Any action that reads/modifies it gets an explicitly emphasized confirmation first.

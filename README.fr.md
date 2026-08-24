@@ -39,6 +39,21 @@
 - **Publication** : `SKILL.md` reste en anglais (la langue primaire universelle de GitHub), tandis que `README.<lang>.md` est publié pour les 10 langues les plus utilisées. Voir `references/i18n.md` pour la liste des langues, les règles de traduction et les notes sur le contrat de déclenchement (toutes les versions linguistiques conservent le même `name`).
 - **Schéma fixe économe en tokens** : les langues disposant déjà d'une traduction sont mises à jour via la traduction par édition incrémentale (modifier uniquement les paragraphes changés — pas de re-traduction complète) ; les langues traduites pour la première fois reçoivent une traduction complète qui établit la référence de terminologie. Voir `references/i18n.md` §1.5.
 
+## Résultats mesurés : v1.4.0 → v1.5.0 (traduction par édition incrémentale)
+
+La mise à jour du README en 11 langues pour cette version a été la première exécution du schéma d'édition incrémentale. Nous l'avons mesurée par rapport à l'ancienne re-traduction complète, en comparant les fichiers v1.4.0 réels (récupérés du dépôt au commit `40dcf1f`) aux fichiers v1.5.0 publiés (diff au niveau des lignes) :
+
+| Métrique | Re-traduction complète (ère v1.4) | Édition incrémentale (v1.5) | Économie |
+|---|---|---|---|
+| Contenu de sortie, 11 langues | 68,292 caractères | 7,717 caractères | **88.7%** |
+| Tokens de sortie approximatifs (~3 caractères/token) | ~22,800 | ~2,600 | **~88.7%** |
+| Terminologie / style | peut dériver à chaque version | anciennes traductions identiques octet pour octet, sauf paragraphes modifiés | stable |
+| Effort par langue | régénérer tout le fichier | ~4 modifications ciblées | plus rapide |
+
+Ratio de changement par langue (caractères changés / ancien fichier complet) : zh-CN 9.1% · hi 10.8% · es 11.9% · fr 12.5% · ar 12.2% · bn 11.3% · pt 11.6% · ru 12.0% · ja 8.9% · de 12.3% · ko 9.4% — **seulement ~9-12% de chaque fichier a réellement changé**, si bien que la re-traduction complète a dépensé ~8-11× plus de sortie que nécessaire.
+
+*Méthode : fichiers v1.4.0 récupérés du dépôt au commit `40dcf1f` ; diff par langue au niveau des lignes (lignes ajoutées/modifiées) par rapport aux fichiers v1.5.0 publiés ; tokens approximés à ~3 caractères/token pour les README multilingues. Les coûts côté entrée diffèrent aussi (l'édition incrémentale lit l'ancienne traduction), mais la sortie est la partie dominante et la plus coûteuse de la traduction par LLM.*
+
 ## Profil local à la machine (local-profile)
 
 Sur les machines au réseau non standard (p. ex. un fichier hosts qui détourne les domaines GitHub vers 127.0.0.1, plus un `gh` portable qui doit passer par un adaptateur proxy local), `E:\ds harness\gh\local-profile.json` regroupe le propriétaire, l'entrée gh, le répertoire de configuration et le mappage des dépôts connus. Ce fichier est marqué `"never_publish": true` — il ne vit que sur la machine et n'est jamais poussé. Toute action qui le lit/le modifie exige d'abord une confirmation explicitement mise en évidence.
