@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **免 git 发布文件到 GitHub —— 省 token、隐私安全、多智能体适配、多语言。**
@@ -14,6 +14,7 @@
 
 - **🚀 免 git 推送** —— 在没有 git 的机器上也能工作；自动初始化空仓库。
 - **⚡ 省 token** —— 一条 `scripts/push.ps1` 命令完成 守卫 → 扫描 → 初始化 → 批量提交 → 脱敏输出（一行 `PUSHED N files -> URL`），替代数十次手写 API 调用。
+- **🌍 省 token 的翻译** —— 多语言 README 通过**增量编辑翻译**更新（子智能体仅在旧翻译基础上编辑发生变化的段落，不做全文重翻）：输出 token 减少约 70-90%、速度更快，且术语与风格保持稳定。
 - **🔒 隐私与账号安全** —— token 只存在于 `gh` 钥匙串中（绝不进入对话/日志/文件）；推送前对文件做密文扫描（`github_pat_`、`ghp_`、`sk-`、私钥……）；输出脱敏。
 - **🛡️ 个人数据守卫** —— 本机专属档案（`local-profile.json` / `config.local.json`）**绝不**可能被发布：源目录一出现此类文件，推送立即中止，其它任何步骤都不再执行。
 - **🗂️ 本机专属档案** —— 在网络环境复杂（例如 hosts 被劫持）的机器上，一个 `local-profile.json` 即可整合账号、gh 条目（代理模式垫片）以及已知仓库映射，推送只需 `-Profile`——再也不用手动寻找账号 / gh / 仓库。
@@ -36,6 +37,7 @@
 
 - **本地工作副本**：保持在你配置的语言（zh 或 en）——即已安装技能目录下的 `config.local.json`（默认 `zh`）。说一句 *"把本地默认语言改成英文"* 即可切换；本地 SKILL.md 会同步更新。
 - **发布版**：`SKILL.md` 保持英文（GitHub 的通用主语言），同时发布 GitHub 使用率最高的 10 种语言的 `README.<lang>.md`。语言列表、翻译规则与触发契约注意事项参见 `references/i18n.md`（所有语言版本保持相同的 `name`）。
+- **省 token 的固定方案**：已有翻译的语言通过增量编辑翻译更新（只编辑发生变化的段落——不做全文重翻）；首次翻译的语言做一次全文翻译，以建立术语基线。参见 `references/i18n.md` §1.5。
 
 ## 本机专属档案（local-profile）
 
@@ -60,7 +62,7 @@
 
 - `references/security.md` —— 隐私与账号安全
 - `references/platform-adapter.md` —— DSH / Codex / Claude Code 映射
-- `references/i18n.md` —— 多语言发布协议（10 种语言）
+- `references/i18n.md` —— 多语言发布协议（10 种语言，增量编辑翻译）
 
 ## 配套技能
 

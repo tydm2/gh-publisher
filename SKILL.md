@@ -1,10 +1,11 @@
 ---
 name: gh-publisher
-description: Use when the user wants to publish files, a skill, or a project to a GitHub repository — especially when git is unavailable or the repo is empty. Publishes without git via the gh CLI + GitHub REST API (Contents / Git Database), with a built-in scripts/push.ps1 for one-command pushes; supports a machine-local profile (local-profile) that auto-resolves account/gh/repo; personal-data files are never published; tokens never enter chat/logs/files, files are secret-scanned before push, output is masked; adapts to DSH/Codex/Claude Code. Not for full git history or branch merges.
+description: Use when the user wants to publish files, a skill, or a project to a GitHub repository — especially when git is unavailable or the repo is empty. Publishes without git via the gh CLI + GitHub REST API (Contents / Git Database), with a built-in scripts/push.ps1 for one-command pushes; supports a machine-local profile (local-profile) that auto-resolves account/gh/repo; personal-data files are never published; multilingual translations use a token-efficient incremental-edit scheme (no full re-translation); tokens never enter chat/logs/files, files are secret-scanned before push, output is masked; adapts to DSH/Codex/Claude Code. Not for full git history or branch merges.
 metadata:
-  version: 1.4.0
+  version: 1.5.0
   languages: [en]
   changelog:
+    - 1.5.0: Translation flow upgraded to a token-efficient fixed scheme — multilingual READMEs default to INCREMENTAL-EDIT translation (each parallel subagent reads the old translation + the new English source and applies only edits to changed paragraphs instead of rewriting all 11 languages from scratch; ~70-90% less output token, faster, keeps terminology/style stable); i18n.md gains §1.5 (steps / preserve list / terminology consistency / terminology baseline on first translation); translation rules gain a do-not-translate list (project names / commands / CLI flags / env vars / file names / badge URLs)
     - 1.4.0: Machine-local optimization — new "machine-local profile (local-profile)": owner / gh entry (proxy-mode shim) / GH_CONFIG_DIR / known repo mapping live in a local-profile.json flagged never_publish (local-only, never pushed); push.ps1 gains -Profile (auto-resolves gh entry / config dir / repo by source match, languages auto-detected from README.<lang>.md), -Repo is now optional; new PERSONAL DATA GUARD — any local-profile.json / config.local.json inside the source aborts the push, and it runs before gh lookup so it fires even when gh is missing; hard rules upgraded to four (personal data never published); action gating: actions touching the local profile / personal data require an explicitly emphasized confirmation, ordinary pushes need only a one-line confirmation
     - 1.3.1: push.ps1 fix — under PS 7.2+ the script-wide $ErrorActionPreference='Stop' turned gh's stderr on expected failures (HTTP 409 "Git Repository is empty" when probing refs of a brand-new repo) into a terminating error that killed the script before the empty-repo init could run; Invoke-GhApi now temporarily downgrades EAP (restored in finally) so $LASTEXITCODE decides, not stderr. Verified end-to-end on a fresh empty repo (auto-seed → batch commit → exit 0)
     - 1.3.0: multilingual is now a DEFAULT push step — before pushing a skill/doc project, generate the 10-language READMEs (parallel agents), run -Languages/-RequireI18n checks, then push; skip only on explicit user opt-out. i18n.md gained an auto-trigger & execution-flow section; push.ps1 gained -RequireI18n (missing language files fail the push)
@@ -25,7 +26,7 @@ Publish a set of local files to a GitHub repository **without git**: use the `gh
 
 ## Four hard rules (★ follow every time)
 
-1. **Token-efficient**: prefer `scripts/push.ps1` (one command does everything); don't hand-call the API file-by-file or re-derive the blob→tree→commit→ref flow.
+1. **Token-efficient**: prefer `scripts/push.ps1` (one command does everything); don't hand-call the API file-by-file or re-derive the blob→tree→commit→ref flow; translations use the incremental-edit fixed scheme, never full re-translation.
 2. **Privacy & account security**: tokens never enter chat / logs / files; log in via `gh auth login` (keyring-managed); output is always masked; files are secret-scanned before push; never commit secrets.
 3. **Multi-agent adaptable**: the body hardcodes no platform-specific tool names; the script runs on `pwsh` (PowerShell Core, cross-platform); mappings in `references/platform-adapter.md`.
 4. **Personal data never leaves the machine (★v1.4)**: the machine-local profile (`local-profile.json` / `config.local.json`) holds account, path, and repo info — it is **never pushed to GitHub under any circumstances**; push.ps1 aborts the moment such a file appears in the source (PERSONAL DATA GUARD). Actions that create/modify/read the local profile or touch personal data require an **explicitly emphasized confirmation** (⚠️ machine-local, not for publishing) first; ordinary skill/doc pushes need only a one-line confirmation.
@@ -67,8 +68,9 @@ On this machine (tydm2 deployment) the account / path / repo info is consolidate
 
 - **Local working copy stays in your language**: the installed skill dir holds `config.local.json` with `{"local_lang": "zh"|"en"}` (default `zh`). Say *"change local default language to English"* to switch — the local SKILL.md is updated to match. Read it before translating any local docs.
 - **Release = 10 GitHub most-used languages**: `README.<lang>.md` for en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja (full list + translation rules + trigger-contract notes in `references/i18n.md`). `SKILL.md` stays in one primary language (English for gh-publisher; the project's own convention otherwise); all language versions share the same `name`.
+- **Translation = token-efficient fixed scheme (v1.5)**: languages that already have an old translation default to **incremental-edit translation** — the subagent reads the old translation + the new English source and applies only edits to changed paragraphs, no full re-translation (~70-90% less output token, faster, stable terminology/style); languages without an old translation get one full first translation that establishes the terminology baseline. Details: `references/i18n.md` §1.5.
 - **Default execution flow (mandatory unless opted out)**:
-  1. Check whether the source already has the 10 `README.<lang>.md` files; for each missing one, generate the translation (parallel subagents; source = the primary README).
+  1. Check whether the source already has the 10 `README.<lang>.md` files; for each missing or outdated one, update it via **incremental-edit translation** (parallel subagents; see i18n.md §1.5).
   2. Run the readiness check: `push.ps1 -Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja` — missing files are WARN (with `-Profile`, languages are auto-detected, so this can be omitted).
   3. For hard enforcement, add `-RequireI18n`: missing language files then **FAIL the push** (exit 1) instead of warning.
   4. Push.
@@ -91,9 +93,10 @@ On this machine (tydm2 deployment) the account / path / repo info is consolidate
 - [ ] Commit message and files contain no keys, passwords, or private data
 - [ ] (v1.4) **Personal-data guard**: `local-profile.json` / `config.local.json` in the source → push.ps1 aborts (PERSONAL DATA GUARD), never published
 - [ ] (v1.4) **Action gating**: actions touching the local profile / personal data get an explicitly emphasized confirmation (⚠️ machine-local); ordinary pushes need only a one-line confirmation
+- [ ] (v1.5) **Token-efficient translation**: multilingual files go through incremental-edit translation (no full re-translation); the preserve list (language bar / badge URLs / links / anchors / commands / env vars / file names) is intact
 
 ## References
 
 - `references/security.md` — privacy & account security (masking, secret-scan checklist, key rotation)
 - `references/platform-adapter.md` — DSH / Codex / Claude Code mapping (GH_CONFIG_DIR, subagents, popup equivalents)
-- `references/i18n.md` — multilingual publish protocol (10 languages, translation rules)
+- `references/i18n.md` — multilingual publish protocol (10 languages, token-efficient incremental-edit translation, translation rules)

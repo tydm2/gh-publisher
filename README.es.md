@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **Publica archivos en GitHub sin git — eficiente en tokens, seguro para la privacidad, multi-agente, multilingüe.**
@@ -14,6 +14,7 @@
 
 - **🚀 Push sin git** — funciona en máquinas sin git; inicializa repositorios vacíos automáticamente.
 - **⚡ Eficiente en tokens** — un solo comando `scripts/push.ps1` hace guard → scan → init → commit por lotes → salida enmascarada (una sola línea `PUSHED N files -> URL`), en lugar de decenas de llamadas a la API hechas a mano.
+- **🌍 Traducciones eficientes en tokens** — los README multilingües se actualizan mediante **traducción por edición incremental** (los subagentes editan solo los párrafos modificados sobre la traducción anterior, sin volver a traducir todo): ~70-90 % menos tokens de salida, más rápido, y la terminología y el estilo se mantienen estables.
 - **🔒 Privacidad y seguridad de la cuenta** — los tokens viven solo en el llavero de `gh` (nunca en chat/logs/archivos); los archivos se escanean en busca de secretos antes del push (`github_pat_`, `ghp_`, `sk-`, claves privadas…); la salida está enmascarada.
 - **🛡️ Protección de datos personales** — el perfil local de la máquina (`local-profile.json` / `config.local.json`) **nunca** puede publicarse: el push se aborta en el momento en que aparece un archivo así en el origen, antes de que se ejecute cualquier otra cosa.
 - **🗂️ Perfil local de la máquina** — en una máquina con red complicada (p. ej. secuestro de hosts), un solo `local-profile.json` consolida la cuenta, la entrada de gh (un shim en modo proxy) y la asignación de repositorios conocidos, de modo que los pushes solo necesitan `-Profile` — no más búsqueda de cuenta / gh / repo.
@@ -36,6 +37,7 @@
 
 - **Copia de trabajo local**: permanece en tu idioma configurado (zh o en) — `config.local.json` en el directorio de la skill instalada (por defecto `zh`). Di *"cambia el idioma local predeterminado a inglés"* para cambiarlo; el SKILL.md local se actualiza para que coincida.
 - **Lanzamiento**: `SKILL.md` permanece en inglés (el idioma principal universal de GitHub), mientras que `README.<lang>.md` se publica para los 10 idiomas más usados. Consulta `references/i18n.md` para la lista de idiomas, las reglas de traducción y las notas sobre el contrato de activación (todas las versiones de idioma mantienen el mismo `name`).
+- **Esquema fijo eficiente en tokens**: los idiomas con traducción existente se actualizan mediante traducción por edición incremental (editar solo los párrafos modificados — sin volver a traducir todo); los idiomas nuevos reciben una traducción completa que establece la base de terminología. Consulta `references/i18n.md` §1.5.
 
 ## Perfil local de la máquina (local-profile)
 
@@ -60,7 +62,7 @@ Actívala con frases como *"sube esto a GitHub"*, *"publica esta skill en un rep
 
 - `references/security.md` — privacidad y seguridad de la cuenta
 - `references/platform-adapter.md` — asignación para DSH / Codex / Claude Code
-- `references/i18n.md` — protocolo de publicación multilingüe (10 idiomas)
+- `references/i18n.md` — protocolo de publicación multilingüe (10 idiomas, traducción por edición incremental)
 
 ## Skills complementarias
 

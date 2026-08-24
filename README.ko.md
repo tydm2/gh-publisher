@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **git 없이 파일을 GitHub에 게시 — 토큰 효율적, 개인정보 안전, 다중 에이전트, 다국어 지원.**
@@ -14,6 +14,7 @@
 
 - **🚀 git 없이 푸시** — git이 없는 머신에서도 작동하며, 빈 저장소를 자동으로 초기화합니다.
 - **⚡ 토큰 효율적** — 하나의 `scripts/push.ps1` 명령이 가드 → 스캔 → 초기화 → 배치 커밋 → 마스킹 출력(단일 `PUSHED N files -> URL` 줄)을 처리하므로, 수십 번의 수작업 API 호출이 필요 없습니다.
+- **🌍 토큰 효율적 번역** — 다국어 README는 **증분 편집 번역**으로 업데이트됩니다(서브에이전트가 기존 번역 위에서 변경된 단락만 편집하며, 전체 재번역이 필요 없음): 출력 토큰이 약 70-90% 절감되고, 더 빠르며, 용어/스타일이 안정적으로 유지됩니다.
 - **🔒 개인정보 및 계정 보안** — 토큰은 `gh` 키링에만 존재합니다(대화/로그/파일에 절대 저장되지 않음). 파일은 푸시 전에 비밀 스캔됩니다(`github_pat_`, `ghp_`, `sk-`, 개인 키…). 출력은 마스킹됩니다.
 - **🛡️ 개인 데이터 가드** — 머신 로컬 프로필(`local-profile.json` / `config.local.json`)은 **절대** 게시될 수 없습니다. 소스에 이러한 파일이 나타나는 순간, 다른 어떤 작업이 실행되기 전에 푸시가 중단됩니다.
 - **🗂️ 머신 로컬 프로필** — 네트워킹이 까다로운 머신(예: 호스트 하이재킹)에서 하나의 `local-profile.json`이 계정, gh 항목(프록시 모드 셤), 알려진 저장소 매핑을 통합하므로 푸시에는 `-Profile`만 있으면 됩니다 — 더 이상 계정/gh/저장소를 찾아 헤맬 필요가 없습니다.
@@ -36,6 +37,7 @@
 
 - **로컬 작업 복사본**: 구성된 언어(zh 또는 en)로 유지됩니다 — 설치된 스킬 디렉터리의 `config.local.json`(기본값 `zh`). *"change local default language to English"*라고 말하면 전환되며, 로컬 SKILL.md도 그에 맞게 업데이트됩니다.
 - **릴리스**: `SKILL.md`는 영어(보편적인 GitHub 기본 언어)로 유지되고, `README.<lang>.md`는 가장 많이 사용되는 10개 언어로 게시됩니다. 언어 목록, 번역 규칙, 트리거 계약 참고 사항은 `references/i18n.md`를 참조하세요(모든 언어 버전은 동일한 `name`을 유지합니다).
+- **토큰 효율적 고정 방식**: 기존 번역이 있는 언어는 증분 편집 번역으로 업데이트됩니다(변경된 단락만 편집 — 전체 재번역 없음). 처음 번역하는 언어는 용어 기준을 확립하는 전체 번역을 한 번 수행합니다. `references/i18n.md` §1.5를 참조하세요.
 
 ## 머신 로컬 프로필(local-profile)
 
@@ -60,7 +62,7 @@
 
 - `references/security.md` — 개인정보 및 계정 보안
 - `references/platform-adapter.md` — DSH / Codex / Claude Code 매핑
-- `references/i18n.md` — 다국어 게시 프로토콜(10개 언어)
+- `references/i18n.md` — 다국어 게시 프로토콜(10개 언어, 증분 편집 번역)
 
 ## 연계 스킬
 

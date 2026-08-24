@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.4.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **git なしで GitHub にファイルを公開 — トークン効率・プライバシー安全・マルチエージェント・多言語対応。**
@@ -14,6 +14,7 @@
 
 - **🚀 git 不要のプッシュ** — git のないマシンでも動作し、空リポジトリを自動的に初期化します。
 - **⚡ トークン効率** — 1 つの `scripts/push.ps1` コマンドで、ガード → スキャン → 初期化 → バッチコミット → マスク出力（`PUSHED N files -> URL` の 1 行）までを行います。手作業による多数の API 呼び出しは不要です。
+- **🌍 トークン効率の高い翻訳** — 多言語 README は**インクリメンタル編集翻訳**で更新されます（サブエージェントが既存の翻訳の上で変更された段落だけを編集し、全文を再翻訳しません）。出力トークンが約 70〜90% 削減され、高速化し、用語・文体も安定します。
 - **🔒 プライバシーとアカウントの安全性** — トークンは `gh` キーリングの中だけに存在します（チャット・ログ・ファイルには決して保存されません）。プッシュ前にファイルをシークレットスキャンし（`github_pat_`、`ghp_`、`sk-`、秘密鍵など）、出力はマスクされます。
 - **🛡️ 個人データガード** — マシンローカルプロファイル（`local-profile.json` / `config.local.json`）は**決して**公開できません。ソース内にそのようなファイルが現れた瞬間、他の処理が実行される前にプッシュは中止されます。
 - **🗂️ マシンローカルプロファイル** — ネットワーク環境が厄介なマシン（例：hosts 乗っ取り）では、1 つの `local-profile.json` にアカウント、gh エントリ（プロキシモードのシム）、既知のリポジトリ対応付けを集約するため、プッシュには `-Profile` だけが必要です — アカウント / gh / リポジトリを探し回る必要はもうありません。
@@ -36,6 +37,7 @@
 
 - **ローカルの作業コピー**: 設定した言語（zh または en）のまま維持されます — インストールされたスキルディレクトリ内の `config.local.json`（デフォルトは `zh`）。*"change local default language to English"*（＝ローカルのデフォルト言語を英語に変更）と言うと切り替わり、ローカルの SKILL.md もそれに合わせて更新されます。
 - **リリース**: `SKILL.md` は英語のまま維持され（GitHub の普遍的プライマリ）、10 の最も使われている言語の `README.<lang>.md` が公開されます。言語リスト、翻訳ルール、トリガー契約の注意点（すべての言語版が同じ `name` を維持すること）については `references/i18n.md` を参照してください。
+- **トークン効率の高い固定方式**: 既存の翻訳がある言語はインクリメンタル編集翻訳で更新されます（変更された段落だけを編集し、全文を再翻訳しません）。初回の言語は、用語の基準を確立する完全な翻訳を 1 回受けます。詳細は `references/i18n.md` §1.5 を参照してください。
 
 ## マシンローカルプロファイル（local-profile）
 
@@ -60,7 +62,7 @@
 
 - `references/security.md` — プライバシーとアカウントの安全性
 - `references/platform-adapter.md` — DSH / Codex / Claude Code の対応付け
-- `references/i18n.md` — 多言語公開プロトコル（10 言語）
+- `references/i18n.md` — 多言語公開プロトコル（10 言語、インクリメンタル編集翻訳）
 
 ## 連携スキル
 

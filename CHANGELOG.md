@@ -2,6 +2,13 @@
 
 All notable changes to `gh-publisher` are documented here. The skill follows [Semantic Versioning](https://semver.org/).
 
+## [1.5.0] — 2026-08-24 — token-efficient fixed scheme: incremental-edit translation
+
+The 11-language README set used to be fully re-translated on every version bump — most tokens went into rewriting unchanged paragraphs, and terminology drifted. v1.5.0 picks ONE fixed, token-efficient way to translate:
+
+- **Incremental-edit translation is now the default**: each parallel subagent reads the old `README.<lang>.md` + the new English `README.md` and applies **file edits only to the changed paragraphs** — unchanged paragraphs stay byte-identical, ~70-90% less output token, faster, and terminology/style stay stable.
+- **`references/i18n.md` §1.5**: the fixed scheme (steps, preserve list, terminology consistency, terminology baseline on first translation); translation rules gain a **do-not-translate list** (project names / package names / commands / CLI flags / option names / env vars / file names / badge URLs), readme-i18n style.
+- First-time languages still get one full translation, which establishes the terminology baseline for future incremental updates.
 ## [1.4.0] — 2026-08-24 — machine-local profile & personal-data guard
 
 Machine-local optimization, driven by real friction on this machine (gh not on PATH, GitHub domains hijacked in the hosts file by Steam++, token in the keyring — the account/gh/repo info was scattered and hard to find):
