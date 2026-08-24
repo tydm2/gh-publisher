@@ -1,18 +1,48 @@
 # push.ps1 - git-free publish to GitHub via gh CLI + REST API
-# Usage:  pwsh scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Branch main] [-GhConfigDir <path>] [-ForceSecret]
-# Exit codes: 0 = ok, 1 = args/secret/network error
+# Usage:
+#   pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Branch main] [-GhConfigDir <path>] [-GhPath <path-to-gh.exe>] [-ForceSecret]
+# Exit codes: 0 = ok, 1 = args/secret/network/gh-missing error
 # Security: never prints tokens; secret-scans files before pushing; output is masked/minimal.
+# v1.1.0 changes:
+#   - auto-detect gh binary: -GhPath > PATH > common install paths; clear hint when missing
+#   - auto-detect GH_CONFIG_DIR: -GhConfigDir > env > %APPDATA%\GitHub CLI
+#   - robust empty-repo detection via git refs (404 = no commit yet = empty), fixes false-empty on README-only repos
+#   - explicit "repo not found" error with `gh repo create` hint instead of silent failure
+#   - API failures now surface gh's stderr tail for diagnosis
 param(
   [Parameter(Mandatory = $true)][string]$Source,
   [Parameter(Mandatory = $true)][string]$Repo,
   [Parameter(Mandatory = $true)][string]$Message,
   [string]$Branch = 'main',
   [string]$GhConfigDir = '',
+  [string]$GhPath = '',
   [switch]$ForceSecret
 )
 $ErrorActionPreference = 'Stop'
-$gh = (Get-Command gh -ErrorAction Stop).Source
+
+# ---------- locate gh binary ----------
+function Find-Gh {
+  if ($GhPath) {
+    if (Test-Path $GhPath) { return (Resolve-Path $GhPath).Path }
+    throw "gh not found at -GhPath: $GhPath"
+  }
+  $cmd = Get-Command gh -ErrorAction SilentlyContinue
+  if ($cmd) { return $cmd.Source }
+  $candidates = @(
+    "$env:ProgramFiles\GitHub CLI\gh.exe",
+    "$env:LOCALAPPDATA\Programs\GitHub CLI\gh.exe",
+    "$env:ProgramFiles\gh\gh.exe"
+  )
+  foreach ($c in $candidates) { if ($c -and (Test-Path $c)) { return $c } }
+  throw "gh CLI not found. Install it (winget install GitHub.cli) or pass -GhPath <path-to-gh.exe>."
+}
+$gh = Find-Gh
+
+# ---------- config dir (only if explicitly needed) ----------
 if ($GhConfigDir) { $env:GH_CONFIG_DIR = $GhConfigDir }
+elseif ($env:GH_CONFIG_DIR) { }  # already set by the caller
+elseif (Test-Path "$env:APPDATA\GitHub CLI") { $env:GH_CONFIG_DIR = "$env:APPDATA\GitHub CLI" }
+
 $srcRoot = (Resolve-Path $Source).Path
 
 # ---------- secret scan ----------
@@ -47,38 +77,61 @@ if ($hits.Count -gt 0) {
   }
 }
 
-# ---------- gh api helper (body via temp JSON, never via command-line args) ----------
+# ---------- gh api helpers (body via temp JSON, never via command-line args) ----------
 $tmp = Join-Path ([IO.Path]::GetTempPath()) ('ghp-' + [guid]::NewGuid().ToString('N'))
 New-Item -ItemType Directory -Force -Path $tmp | Out-Null
+
+function Invoke-GhApi {
+  # runs gh api, returns ($ok, $textOrError); never leaks token
+  param([string]$Method, [string]$Endpoint, [string]$BodyFile = '')
+  $args = @('api', '--method', $Method, $Endpoint)
+  if ($BodyFile) { $args += @('--input', $BodyFile) }
+  $out = (& $gh @args 2>&1 | Out-String)
+  if ($LASTEXITCODE -ne 0) { return @($false, $out.Trim()) }
+  return @($true, $out.Trim())
+}
+
 function ApiJson($method, $endpoint, $obj) {
   $bf = Join-Path $tmp ('b-' + [guid]::NewGuid().ToString('N') + '.json')
   [IO.File]::WriteAllText($bf, ($obj | ConvertTo-Json -Depth 8 -Compress), (New-Object Text.UTF8Encoding($false)))
-  $raw = (& $gh api --method $method $endpoint --input $bf 2>$null) -join "`n"
+  $res = Invoke-GhApi -Method $method -Endpoint $endpoint -BodyFile $bf
   Remove-Item $bf -Force
-  if (-not $raw) { throw "gh api failed: $endpoint" }
-  return ($raw | ConvertFrom-Json)
+  if (-not $res[0]) { throw "gh api failed: $method $endpoint`n$($res[1])" }
+  if (-not $res[1]) { throw "gh api returned empty body: $method $endpoint" }
+  return ($res[1] | ConvertFrom-Json)
 }
 
-# ---------- detect empty repo ----------
-$isEmpty = $false
-$meta = & $gh api "repos/$Repo" 2>$null | ConvertFrom-Json
-if ($meta -and $meta.size -eq 0) { $isEmpty = $true }
+# ---------- check repo exists ----------
+$repoCheck = Invoke-GhApi -Method 'GET' -Endpoint "repos/$Repo"
+if (-not $repoCheck[0]) {
+  Write-Host "REPO NOT FOUND: $Repo"
+  Write-Host "Create it first, e.g.:  gh repo create $Repo --public --source `"$Source`" --push"
+  Write-Host "(API detail: $($repoCheck[1]))"
+  exit 1
+}
+
+# ---------- detect empty repo (git ref missing => no commit yet => empty) ----------
+$head = Invoke-GhApi -Method 'GET' -Endpoint "repos/$Repo/git/refs/heads/$Branch"
+$isEmpty = -not $head[0]
 
 if ($isEmpty) {
-  # initialize: create the first file via Contents API (auto-creates default branch)
+  # initialize: seed the first file via Contents API (auto-creates the default branch)
   $first = Get-ChildItem $Source -Recurse -File | Sort-Object FullName | Select-Object -First 1
+  if (-not $first) { Write-Host "ERROR: source dir has no files to push"; exit 1 }
   $rel = $first.FullName.Substring($srcRoot.Length + 1).Replace('\', '/')
   $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($first.FullName))
   $bf = Join-Path $tmp 'init.json'
   [IO.File]::WriteAllText($bf, (@{ message = 'chore: initialize repository'; content = $b64 } | ConvertTo-Json -Compress), (New-Object Text.UTF8Encoding($false)))
-  $null = & $gh api --method PUT "repos/$Repo/contents/$rel" --input $bf 2>$null
+  $init = Invoke-GhApi -Method 'PUT' -Endpoint "repos/$Repo/contents/$rel" -BodyFile $bf
   Remove-Item $bf -Force
+  if (-not $init[0]) { Write-Host "ERROR: repo init failed: $($init[1])"; exit 1 }
   Write-Host "init: empty repo -> seeded with $rel"
+  $head = Invoke-GhApi -Method 'GET' -Endpoint "repos/$Repo/git/refs/heads/$Branch"
+  if (-not $head[0]) { Write-Host "ERROR: repo init did not create branch ${Branch}: $($head[1])"; exit 1 }
 }
+$parent = ($head[1] | ConvertFrom-Json).object.sha
 
 # ---------- batch commit via Git Database API ----------
-$head = ApiJson 'GET' "repos/$Repo/git/refs/heads/$Branch"
-$parent = $head.object.sha
 $files = Get-ChildItem $Source -Recurse -File | Sort-Object FullName
 $treeItems = @()
 foreach ($f in $files) {

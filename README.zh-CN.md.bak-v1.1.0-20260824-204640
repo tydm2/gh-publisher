@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Português](./README.pt.md) · [Español](./README.es.md) · [日本語](./README.ja.md) · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md) · [한국어](./README.ko.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![100%25 AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#免责声明)
 
 **把文件推送到 GitHub——无需 git，省 token、护隐私、跨平台。**
@@ -20,18 +20,11 @@
 
 ## 工作原理
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <目录> -Repo owner/repo -Message "…" [-GhPath <gh.exe 路径>]`
-2. 自动定位 `gh` 二进制（`-GhPath` → PATH → 常见安装路径）并自动探测 `GH_CONFIG_DIR`——无需手动改 PATH/配置。
-3. 密文扫描 → 命中密钥/token 模式即中止（除非加 `-ForceSecret`）。
-4. 按分支 ref 检测空仓库（404=空）→ 必要时播种首个文件（Contents API）。
-5. 批量提交全部文件（Git Database API：blobs → tree → commit → ref）。
-6. 打印 `PUSHED N files -> https://github.com/owner/repo`——仅此一行；仓库不存在时打印 `gh repo create` 提示。
-
-## 环境自检（首次推送前跑一遍）
-
-- `Get-Command gh`（或让脚本自动探测安装路径）；缺失时 `winget install GitHub.cli`。
-- `gh auth status` 显示已登录账号（token 掩码为 `github_pat_***…`）。
-- `gh api repos/{owner}/{repo}` 或 `gh repo list` 能返回数据。
+1. `pwsh scripts/push.ps1 -Source <目录> -Repo owner/repo -Message "…"`
+2. 密文扫描 → 命中密钥/token 模式即中止（除非加 `-ForceSecret`）。
+3. 检测空仓库 → 必要时播种首个文件（Contents API）。
+4. 批量提交全部文件（Git Database API：blobs → tree → commit → ref）。
+5. 打印 `PUSHED N files -> https://github.com/owner/repo`——仅此一行。
 
 ## 安装
 

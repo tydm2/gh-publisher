@@ -3,7 +3,7 @@
 [English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Português](./README.pt.md) · [Español](./README.es.md) · [日本語](./README.ja.md) · [Deutsch](./README.de.md) · [Français](./README.fr.md) · [Русский](./README.ru.md) · [한국어](./README.ko.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.1.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-blue.svg)](./CHANGELOG.md)
 [![100%25 AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **Publish files to GitHub without git — token-efficient, privacy-safe, multi-agent.**
@@ -20,18 +20,11 @@
 
 ## How it works
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-GhPath <path-to-gh.exe>]`
-2. Auto-locates the `gh` binary (`-GhPath` → PATH → common install paths) and auto-detects `GH_CONFIG_DIR` — no manual PATH/config fiddling.
-3. Secret scan → abort on any key/token pattern (unless `-ForceSecret`).
-4. Detect empty repo by checking the branch ref (404 = empty) → seed first file (Contents API) if needed.
-5. Batch commit all files (Git Database API: blobs → tree → commit → ref).
-6. Print `PUSHED N files -> https://github.com/owner/repo` — nothing else. Missing repo → prints a `gh repo create` hint.
-
-## Environment self-check (once before first push)
-
-- `Get-Command gh` (or let the script auto-detect install paths); if missing: `winget install GitHub.cli`.
-- `gh auth status` shows a logged-in account (token masked as `github_pat_***…`).
-- `gh api repos/{owner}/{repo}` or `gh repo list` returns data.
+1. `pwsh scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "…"`
+2. Secret scan → abort on any key/token pattern (unless `-ForceSecret`).
+3. Detect empty repo → seed first file (Contents API) if needed.
+4. Batch commit all files (Git Database API: blobs → tree → commit → ref).
+5. Print `PUSHED N files -> https://github.com/owner/repo` — nothing else.
 
 ## Install
 
