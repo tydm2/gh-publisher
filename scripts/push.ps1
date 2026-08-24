@@ -133,7 +133,7 @@ $isEmpty = -not $head[0]
 
 if ($isEmpty) {
   # initialize: seed the first file via Contents API (auto-creates the default branch)
-  $first = Get-ChildItem $Source -Recurse -File | Sort-Object FullName | Select-Object -First 1
+  $first = Get-ChildItem $Source -Recurse -File | Where-Object { $_.Name -notmatch '\.bak' } | Sort-Object FullName | Select-Object -First 1
   if (-not $first) { Write-Host "ERROR: source dir has no files to push"; exit 1 }
   $rel = $first.FullName.Substring($srcRoot.Length + 1).Replace('\', '/')
   $b64 = [Convert]::ToBase64String([IO.File]::ReadAllBytes($first.FullName))
@@ -149,7 +149,8 @@ if ($isEmpty) {
 $parent = ($head[1] | ConvertFrom-Json).object.sha
 
 # ---------- batch commit via Git Database API ----------
-$files = Get-ChildItem $Source -Recurse -File | Sort-Object FullName
+# exclude local backup files (*.bak-*) — they never belong in the repo
+$files = Get-ChildItem $Source -Recurse -File | Where-Object { $_.Name -notmatch '\.bak' } | Sort-Object FullName
 $treeItems = @()
 foreach ($f in $files) {
   $rel = $f.FullName.Substring($srcRoot.Length + 1).Replace('\', '/')
