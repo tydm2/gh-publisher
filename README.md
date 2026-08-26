@@ -1,14 +1,14 @@
 # gh-publisher
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **Publish files to GitHub without git — token-efficient, privacy-safe, multi-agent, multilingual.**
 
-`gh-publisher` is an agent skill that publishes a local directory to a GitHub repository using the `gh` CLI + GitHub REST API (Contents / Git Database) — no git required. It handles empty-repo initialization and batch commits with one reusable script, so agents push in one command instead of re-deriving the whole API flow. It also publishes **10 of GitHub's most-used languages** (README translations) while the local working copy stays in your preferred language.
+`gh-publisher` is an agent skill that publishes a local directory to a GitHub repository using the `gh` CLI + GitHub REST API (Contents / Git Database) — no git required. It handles empty-repo initialization and batch commits with one reusable script, so agents push in one command instead of re-deriving the whole API flow. It also publishes **6 release languages** (en, zh-CN, es, fr, ja, ru — README translations) while the local working copy stays in your preferred language.
 
 ## Why it stands out
 
@@ -20,23 +20,23 @@
 - **🗂️ Machine-local profile** — on a machine with tricky networking (e.g. hosts hijacking), one `local-profile.json` consolidates the account, the gh entry (a proxy-mode shim), and the known repo mapping, so pushes need only `-Profile` — no more hunting for account / gh / repo.
 - **🔌 Multi-agent adaptable** — `pwsh` script runs on Windows/macOS/Linux; DSH / Codex / Claude Code mappings documented; no hardcoded platform tool names.
 - **🧩 Auto empty-repo init** — detects empty repos and seeds the first file via the Contents API before the batch commit.
-- **🌍 Multilingual publish** — the local working copy stays in your chosen language (default Chinese); releases ship README translations for GitHub's 10 most-used languages (en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja). See `references/i18n.md`.
+- **🌍 Multilingual publish** — the local working copy stays in your chosen language (default Chinese); releases ship README translations for 6 release languages (en, zh-CN, es, fr, ja, ru). See `references/i18n.md`.
 
 ## How it works
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Profile <local-profile.json>] [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
+1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Profile <local-profile.json>] [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,es,fr,ja,ru]`
 2. Auto-locates the `gh` binary (`-GhPath` → PATH → common install paths) and auto-detects `GH_CONFIG_DIR` — no manual PATH/config fiddling. With `-Profile`, the gh entry, config dir, repo (matched by source dir) and languages (auto-detected from `README.<lang>.md`) are resolved automatically.
 3. **Personal-data guard** — `local-profile.json` / `config.local.json` in the source → abort (they must never be published).
 4. Secret scan → abort on any key/token pattern (unless `-ForceSecret`).
 5. Detect empty repo by checking the branch ref (404 = empty) → seed first file (Contents API) if needed.
 6. Batch commit all files (Git Database API: blobs → tree → commit → ref).
 7. Print `PUSHED N files -> https://github.com/owner/repo` — nothing else. Missing repo → prints a `gh repo create` hint.
-8. Optional `-Languages` check: verifies each language file exists (e.g. `README.hi.md`) before pushing and warns if any are missing.
+8. Optional `-Languages` check: verifies each language file exists (e.g. `README.es.md`) before pushing and warns if any are missing.
 
-## Multilingual publish (local language + 10 release languages)
+## Multilingual publish (local language + 6 release languages)
 
 - **Local working copy**: stays in your configured language (zh or en) — `config.local.json` in the installed skill dir (default `zh`). Say *"change local default language to English"* to switch; the local SKILL.md is updated to match.
-- **Release**: `SKILL.md` stays in English (the universal GitHub primary), while `README.<lang>.md` is published for the 10 most-used languages. See `references/i18n.md` for the language list, translation rules, and trigger-contract notes (all language versions keep the same `name`).
+- **Release**: `SKILL.md` stays in English (the universal GitHub primary), while `README.<lang>.md` is published for the 6 release languages (en, zh-CN, es, fr, ja, ru). See `references/i18n.md` for the language list, translation rules, and trigger-contract notes (all language versions keep the same `name`).
 - **Token-efficient fixed scheme**: languages with an existing translation update via incremental-edit translation (edit only the changed paragraphs — no full re-translation); first-time languages get one full translation that establishes the terminology baseline. See `references/i18n.md` §1.5.
 
 ## Measured results: v1.4.0 → v1.5.0 (incremental-edit translation)
@@ -77,7 +77,7 @@ Trigger it with phrases like *"push this to GitHub"*, *"publish this skill to a 
 
 - `references/security.md` — privacy & account security
 - `references/platform-adapter.md` — DSH / Codex / Claude Code mapping
-- `references/i18n.md` — multilingual publish protocol (10 languages, incremental-edit translation)
+- `references/i18n.md` — multilingual publish protocol (6 languages, incremental-edit translation)
 
 ## Companion skills
 

@@ -1,14 +1,14 @@
 # gh-publisher
 
-[English](./README.md) · [简体中文](./README.zh-CN.md) · [हिन्दी](./README.hi.md) · [Español](./README.es.md) · [Français](./README.fr.md) · [العربية](./README.ar.md) · [বাংলা](./README.bn.md) · [Português](./README.pt.md) · [Русский](./README.ru.md) · [日本語](./README.ja.md)
+[English](./README.md) · [简体中文](./README.zh-CN.md) · [Español](./README.es.md) · **[Français](./README.fr.md)** · [Русский](./README.ru.md) · [日本語](./README.ja.md)
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.5.0-blue.svg)](./CHANGELOG.md)
+[![Version](https://img.shields.io/badge/version-1.6.0-blue.svg)](./CHANGELOG.md)
 [![100% AI-crafted](https://img.shields.io/badge/100%25-AI--crafted-9cf.svg)](#disclaimer)
 
 **Publiez des fichiers sur GitHub sans git — économe en tokens, respectueux de la vie privée, multi-agent, multilingue.**
 
-`gh-publisher` est une compétence d'agent qui publie un répertoire local vers un dépôt GitHub à l'aide de la CLI `gh` + de l'API REST GitHub (Contents / Git Database) — sans git requis. Elle gère l'initialisation des dépôts vides et les commits par lots avec un seul script réutilisable, si bien que les agents poussent en une seule commande au lieu de redériver tout le flux d'API. Elle publie également **10 des langues les plus utilisées de GitHub** (traductions du README) tandis que la copie de travail locale reste dans votre langue préférée.
+`gh-publisher` est une compétence d'agent qui publie un répertoire local vers un dépôt GitHub à l'aide de la CLI `gh` + de l'API REST GitHub (Contents / Git Database) — sans git requis. Elle gère l'initialisation des dépôts vides et les commits par lots avec un seul script réutilisable, si bien que les agents poussent en une seule commande au lieu de redériver tout le flux d'API. Elle publie également **6 langues de publication** (en, zh-CN, es, fr, ja, ru — traductions du README) tandis que la copie de travail locale reste dans votre langue préférée.
 
 ## Pourquoi elle se distingue
 
@@ -20,23 +20,23 @@
 - **🗂️ Profil local à la machine** — sur une machine au réseau capricieux (p. ex. détournement via le fichier hosts), un seul `local-profile.json` regroupe le compte, l'entrée gh (un adaptateur en mode proxy) et le mappage des dépôts connus, si bien que les pushes n'ont besoin que de `-Profile` — fini la chasse au compte / gh / dépôt.
 - **🔌 Adaptable multi-agent** — le script `pwsh` fonctionne sur Windows/macOS/Linux ; les correspondances DSH / Codex / Claude Code sont documentées ; aucun nom d'outil de plateforme codé en dur.
 - **🧩 Initialisation automatique des dépôts vides** — détecte les dépôts vides et dépose le premier fichier via l'API Contents avant le commit par lots.
-- **🌍 Publication multilingue** — la copie de travail locale reste dans la langue de votre choix (chinois par défaut) ; les publications embarquent les traductions du README pour les 10 langues les plus utilisées de GitHub (en, zh-CN, hi, es, fr, ar, bn, pt, ru, ja). Voir `references/i18n.md`.
+- **🌍 Publication multilingue** — la copie de travail locale reste dans la langue de votre choix (chinois par défaut) ; les publications embarquent les traductions du README pour les 6 langues de publication (en, zh-CN, es, fr, ja, ru). Voir `references/i18n.md`.
 
 ## Comment ça fonctionne
 
-1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Profile <local-profile.json>] [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,hi,es,fr,ar,bn,pt,ru,ja]`
+1. `pwsh -ExecutionPolicy Bypass -File scripts/push.ps1 -Source <dir> -Repo owner/repo -Message "msg" [-Profile <local-profile.json>] [-GhPath <path-to-gh.exe>] [-Languages en,zh-CN,es,fr,ja,ru]`
 2. Localise automatiquement le binaire `gh` (`-GhPath` → PATH → chemins d'installation courants) et détecte automatiquement `GH_CONFIG_DIR` — pas de bricolage manuel du PATH/de la configuration. Avec `-Profile`, l'entrée gh, le répertoire de configuration, le dépôt (correspondant au répertoire source) et les langues (auto-détectées à partir de `README.<lang>.md`) sont résolus automatiquement.
 3. **Garde-fou des données personnelles** — `local-profile.json` / `config.local.json` dans la source → interruption (ils ne doivent jamais être publiés).
 4. Scan des secrets → interruption sur tout motif de clé/token (sauf avec `-ForceSecret`).
 5. Détecte le dépôt vide en vérifiant la référence de branche (404 = vide) → dépose le premier fichier (API Contents) si nécessaire.
 6. Commit par lots de tous les fichiers (API Git Database : blobs → tree → commit → ref).
 7. Affiche `PUSHED N files -> https://github.com/owner/repo` — rien d'autre. Dépôt manquant → affiche une indication `gh repo create`.
-8. Contrôle optionnel `-Languages` : vérifie que chaque fichier de langue existe (p. ex. `README.hi.md`) avant de pousser et avertit si l'un d'eux manque.
+8. Contrôle optionnel `-Languages` : vérifie que chaque fichier de langue existe (p. ex. `README.es.md`) avant de pousser et avertit si l'un d'eux manque.
 
-## Publication multilingue (langue locale + 10 langues de publication)
+## Publication multilingue (langue locale + 6 langues de publication)
 
 - **Copie de travail locale** : reste dans la langue configurée (zh ou en) — `config.local.json` dans le répertoire d'installation de la compétence (défaut `zh`). Dites *« change local default language to English »* pour basculer ; le SKILL.md local est mis à jour en conséquence.
-- **Publication** : `SKILL.md` reste en anglais (la langue primaire universelle de GitHub), tandis que `README.<lang>.md` est publié pour les 10 langues les plus utilisées. Voir `references/i18n.md` pour la liste des langues, les règles de traduction et les notes sur le contrat de déclenchement (toutes les versions linguistiques conservent le même `name`).
+- **Publication** : `SKILL.md` reste en anglais (la langue primaire universelle de GitHub), tandis que `README.<lang>.md` est publié pour les 6 langues de publication (en, zh-CN, es, fr, ja, ru). Voir `references/i18n.md` pour la liste des langues, les règles de traduction et les notes sur le contrat de déclenchement (toutes les versions linguistiques conservent le même `name`).
 - **Schéma fixe économe en tokens** : les langues disposant déjà d'une traduction sont mises à jour via la traduction par édition incrémentale (modifier uniquement les paragraphes changés — pas de re-traduction complète) ; les langues traduites pour la première fois reçoivent une traduction complète qui établit la référence de terminologie. Voir `references/i18n.md` §1.5.
 
 ## Résultats mesurés : v1.4.0 → v1.5.0 (traduction par édition incrémentale)
@@ -77,7 +77,7 @@ Déclenchez-la avec des phrases comme *« push this to GitHub »*, *« publish t
 
 - `references/security.md` — vie privée et sécurité du compte
 - `references/platform-adapter.md` — correspondance DSH / Codex / Claude Code
-- `references/i18n.md` — protocole de publication multilingue (10 langues, traduction par édition incrémentale)
+- `references/i18n.md` — protocole de publication multilingue (6 langues, traduction par édition incrémentale)
 
 ## Compétences associées
 

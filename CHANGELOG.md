@@ -1,6 +1,12 @@
-﻿# Changelog
+# Changelog
 
 All notable changes to `gh-publisher` are documented here. The skill follows [Semantic Versioning](https://semver.org/).
+
+## [1.6.0] — 2026-08-26 — multilingual cut from 10 to 6 release languages
+
+- **6 release languages**: en, zh-CN, es, fr, ja, ru (hi/ar/bn/pt dropped from the set — translation volume −40%); previously published hi/ar/bn/pt/de/ko READMEs are kept for compatibility but no longer maintained or added to.
+- **`references/i18n.md` §1.6 "Efficiency points"**: language bar lists only the 6 release languages (no dead links, shorter); code blocks / preserve-list items stay byte-identical (no re-translation); parallel subagents by default.
+- **`SKILL.md` / `references/i18n.md`**: language list, execution flow and `-Languages en,zh-CN,es,fr,ja,ru` updated everywhere.
 
 ## [1.5.0] — 2026-08-24 — token-efficient fixed scheme: incremental-edit translation
 
